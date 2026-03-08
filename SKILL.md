@@ -1,7 +1,8 @@
 ---
 name: launchagent-manager
+displayName: LaunchAgent Manager | OpenClaw Skill
 description: List, classify, prune LaunchAgents; analyze openclaw.json so the proper gateway LaunchAgent remains connected and tokens match. Keeps only OpenClaw-related agents; can unload/delete others.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # LaunchAgent Manager

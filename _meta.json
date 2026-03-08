@@ -1,15 +1,45 @@
 {
   "schema": "openclaw.skill.v1",
   "name": "launchagent-manager",
-  "version": "1.0.0",
-  "displayName": "Launchagent Manager",
-  "description": "List and prune macOS LaunchAgents; keep only OpenClaw-related, remove others.",
+  "version": "1.1.0",
+  "displayName": "LaunchAgent Manager | OpenClaw Skill",
+  "description": "Manages macOS LaunchAgents: lists and classifies plists as OpenClaw or other, prunes non-OpenClaw agents, analyzes openclaw.json gateway configuration (port, auth, token sync), verifies gateway LaunchAgent is loaded and running, and can auto-fix by loading plists and running gateway-guard ensure.",
   "author": "OpenClaw",
+  "license": "MIT",
+  "homepage": "https://github.com/RuneweaverStudios/launchagent-manager",
   "tags": [
     "launchd",
     "launchagents",
     "macos",
-    "openclaw"
+    "openclaw",
+    "gateway",
+    "system-management",
+    "config-check",
+    "token-sync",
+    "pruning"
   ],
-  "platform": "openclaw"
+  "platform": "openclaw",
+  "requires": {
+    "python": ">=3.8",
+    "os": "macOS",
+    "optionalEnv": [
+      "OPENCLAW_HOME"
+    ]
+  },
+  "fileAccess": {
+    "read": [
+      "~/Library/LaunchAgents/*.plist",
+      "openclaw.json (gateway config)"
+    ],
+    "write": [
+      "$OPENCLAW_HOME/backups/launchagents/ (plist backups before deletion)"
+    ]
+  },
+  "commands": {
+    "list": "List and classify all LaunchAgents",
+    "config": "Analyze gateway config and verify token sync",
+    "config --fix": "Auto-load gateway plist and sync tokens",
+    "prune --dry-run": "Preview prune targets",
+    "prune --apply": "Unload non-OpenClaw agents"
+  }
 }

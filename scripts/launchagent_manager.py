@@ -278,10 +278,17 @@ def main():
 
     if args.do_prune:
         if not args.apply and not args.dry_run:
-            print("Prune: use --dry-run to see what would be unloaded, or --apply to unload non-OpenClaw agents.", file=sys.stderr)
-            sys.exit(2)
+            # Default to dry-run when neither is specified
+            args.dry_run = True
         if args.json:
-            report = {"would_unload": [a["label"] for a in others], "would_keep": [a["label"] for a in openclaw], "applied": False}
+            report = {
+                "dry_run": not args.apply,
+                "would_unload": [{"label": a["label"], "path": a["path"], "loaded": a["loaded"]} for a in others],
+                "would_keep": [{"label": a["label"], "path": a["path"], "loaded": a["loaded"]} for a in openclaw],
+                "unload_count": len(others),
+                "keep_count": len(openclaw),
+                "applied": False
+            }
         else:
             print("Non-OpenClaw LaunchAgents (would be unloaded):")
             for a in others:
