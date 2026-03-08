@@ -158,11 +158,14 @@ def list_agents():
     return out
 
 
-def unload_agent(label: str) -> bool:
-    """Unload one LaunchAgent by label. Return True on success."""
+def unload_agent(label: str, plist_path: str = None) -> bool:
+    """Unload one LaunchAgent by label. Uses actual plist_path if provided,
+    otherwise falls back to constructing path from label (for backwards compat)."""
+    if plist_path is None:
+        plist_path = str(LAUNCH_AGENTS_DIR / f"{label}.plist")
     try:
         r = subprocess.run(
-            ["launchctl", "unload", str(LAUNCH_AGENTS_DIR / f"{label}.plist")],
+            ["launchctl", "unload", plist_path],
             capture_output=True,
             text=True,
             timeout=10,
@@ -261,6 +264,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="With --prune: only show what would be done (default for --prune)")
     ap.add_argument("--apply", action="store_true", help="With --prune: actually unload non-OpenClaw agents")
     ap.add_argument("--delete-plists", action="store_true", help="With --prune --apply: also delete plist files (backup to OPENCLAW_HOME/backups/launchagents)")
+    ap.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompt for destructive operations (--delete-plists)")
     args = ap.parse_args()
     if not args.do_prune and not args.do_config:
         args.do_list = True
@@ -284,17 +288,25 @@ def main():
                 print("  ", a["label"], a["path"])
             print("OpenClaw (kept):", ", ".join(a["label"] for a in openclaw) or "(none)")
         if args.apply:
+            # Require confirmation for destructive --delete-plists unless --yes is passed
+            if args.delete_plists and not args.yes:
+                print(f"WARNING: This will unload and DELETE {len(others)} plist file(s) (backups saved to {OPENCLAW_HOME / 'backups' / 'launchagents'}).")
+                print("Re-run with --yes to confirm, or use --dry-run to preview.")
+                sys.exit(2)
             backup_dir = OPENCLAW_HOME / "backups" / "launchagents"
             if args.delete_plists:
                 backup_dir.mkdir(parents=True, exist_ok=True)
             for a in others:
-                unload_agent(a["label"])
+                unload_agent(a["label"], plist_path=a["path"])
                 if args.delete_plists:
                     src = Path(a["path"])
                     if src.exists():
-                        dest = backup_dir / src.name
-                        shutil.copy2(src, dest)
-                        src.unlink()
+                        try:
+                            dest = backup_dir / src.name
+                            shutil.copy2(src, dest)
+                            src.unlink()
+                        except OSError as e:
+                            print(f"Error backing up/deleting {src}: {e}", file=sys.stderr)
             if args.json:
                 report["applied"] = True
                 report["unloaded"] = [a["label"] for a in others]

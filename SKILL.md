@@ -35,7 +35,61 @@ python3 <skill-dir>/scripts/launchagent_manager.py --prune --apply [--delete-pli
 - **--prune** — Operate on non-OpenClaw agents. Without --apply this is a dry-run (show what would be unloaded).
 - **--prune --dry-run** — Only show what would be unloaded.
 - **--prune --apply** — Unload each non-OpenClaw LaunchAgent. Plist files kept unless --delete-plists.
-- **--prune --apply --delete-plists** — Unload and delete plist files (backed up to OPENCLAW_HOME/backups/launchagents).
+- **--prune --apply --delete-plists** — Unload and delete plist files (backed up to OPENCLAW_HOME/backups/launchagents). Requires `--yes` to confirm.
+- **--yes / -y** — Skip confirmation prompt for destructive operations (required with `--delete-plists`).
+
+## Usage Examples
+
+### List all LaunchAgents
+
+```bash
+$ python3 scripts/launchagent_manager.py --list
+OpenClaw LaunchAgents (kept):
+   ai.openclaw.gateway — loaded
+   com.openclaw.watchdog — loaded
+Other LaunchAgents (prune with --prune --apply):
+   com.apple.Safari — unloaded — /Users/you/Library/LaunchAgents/com.apple.Safari.plist
+   com.spotify.webhelper — loaded — /Users/you/Library/LaunchAgents/com.spotify.webhelper.plist
+```
+
+### Config check (JSON output)
+
+```bash
+$ python3 scripts/launchagent_manager.py --config --json
+{
+  "ok": true,
+  "config_path": "/Users/you/.openclaw/openclaw.json",
+  "gateway": {
+    "port": 18789,
+    "auth_mode": "token",
+    "token_set_in_config": true,
+    "config_ok": true
+  },
+  "gateway_launchagent": {
+    "label": "ai.openclaw.gateway",
+    "path": "/Users/you/Library/LaunchAgents/ai.openclaw.gateway.plist"
+  },
+  "gateway_loaded": true,
+  "tokens_match": true,
+  "recommendations": []
+}
+```
+
+### Prune dry-run
+
+```bash
+$ python3 scripts/launchagent_manager.py --prune --dry-run
+Non-OpenClaw LaunchAgents (would be unloaded):
+   com.spotify.webhelper /Users/you/Library/LaunchAgents/com.spotify.webhelper.plist
+OpenClaw (kept): ai.openclaw.gateway, com.openclaw.watchdog
+```
+
+### Prune with deletion (requires --yes)
+
+```bash
+$ python3 scripts/launchagent_manager.py --prune --apply --delete-plists --yes
+Unloaded 1 non-OpenClaw agent(s).
+```
 
 ## Safety
 
